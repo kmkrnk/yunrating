@@ -49,7 +49,7 @@ rows = {g: [{"n": p["n"], "y": p["y"], "po": p["place"], "s": {date2id[d]: v for
         for g, ps in official.items()}
 # One person entered twice in the official table: (group, name kept, year, other spelling). Rows are joined
 # only if they never share a stage.
-SAME_PERSON = []  # the official part stays exactly as published, duplicates included
+SAME_PERSON = [("Ж14", "Рябикова Варвара", 2012, "Рябикова Варя")]  # confirmed: one athlete entered twice
 for g, keep, y, other in SAME_PERSON:
     a = next((r for r in rows.get(g, []) if r["n"] == keep and r["y"] == y), None)
     b = next((r for r in rows.get(g, []) if r["n"] == other and r["y"] == y), None)
