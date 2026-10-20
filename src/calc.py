@@ -54,7 +54,10 @@ OPTIONAL = {}  # stages follow the official list on orient.by (competitions/2026
 
 
 def fetch(url):
-    req = urllib.request.Request(url, headers={"Accept": "application/json", "User-Agent": "yr-calc"})
+    req = urllib.request.Request(url, headers={
+        "Accept": "application/json" if "/api/" in url else "text/html,application/xhtml+xml,*/*;q=0.8",
+        "Accept-Language": "ru,en;q=0.8",
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36"})
     with urllib.request.urlopen(req, timeout=40) as r:
         return r.read()
 

@@ -29,7 +29,16 @@ def parse_official(path):
 
 RAT = os.path.join(HERE, "cache", "official.html")
 os.makedirs(os.path.dirname(RAT), exist_ok=True)
-open(RAT, "wb").write(calc.fetch("https://orient.by/rating/youth/121874-2026/"))
+SAVED = os.path.join(HERE, "official.html")  # copy of the official table kept in the repo
+try:
+    raw = calc.fetch("https://orient.by/rating/youth/121874-2026/")
+    if b"rating" not in raw:
+        raise ValueError("unexpected page")
+    open(SAVED, "wb").write(raw)
+except Exception as e:  # orient.by sometimes refuses requests from cloud servers
+    print("orient.by not reachable, using the saved copy:", e)
+    raw = open(SAVED, "rb").read()
+open(RAT, "wb").write(raw)
 official, odates = parse_official(RAT)
 # birth year as the federation has it decides the age group (protocols sometimes give another year)
 for ps in official.values():
