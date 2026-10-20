@@ -16,7 +16,7 @@ API = "http://bfo-base.orient.by/api/v1"
 CACHE = os.path.join(HERE, "cache")
 os.makedirs(CACHE, exist_ok=True)
 YEAR = 2026
-PLANNED = 22  # rating distances in the 2026 calendar (Положение, п. 7)
+PLANNED = 20  # 22 distances in the 2026 calendar (Положение, п. 7) minus Vitebsk 05-06.09, which did not take place
 
 # (source, id, class, competition, distance, date)
 STAGES = [
@@ -29,6 +29,9 @@ STAGES = [
     ("base", 1057, "Б", "Гродненская лесная многодневка", "Классика", "2026-04-20"),
     ("base", 1076, "А", "Командный чемпионат БФО", "Длинная", "2026-05-16"),
     ("base", 1077, "А", "Командный чемпионат БФО", "Средняя", "2026-05-17"),
+    ("obelarus", "260911r_spart", "А", "Республиканская спартакиада", "Спринт", "2026-09-11"),
+    ("obelarus", "260912r_spart", "А", "Республиканская спартакиада", "Классика", "2026-09-12"),
+    ("obelarus", "260913r_spart", "А", "Республиканская спартакиада", "Средняя", "2026-09-13"),
     ("obelarus", "261010r_homel", "Б", "Золотая осень", "Спринт", "2026-10-10"),
     ("obelarus", "261011r_homel", "Б", "Золотая осень", "Средняя", "2026-10-11"),
     ("base", 1157, "А", "Первенство РБ, Слуцк", "Средняя", "2026-10-17"),
@@ -133,15 +136,31 @@ def load_obelarus(code):
         except UnicodeDecodeError:
             t = raw.decode("cp1251")
         t = html.unescape(re.sub(r"<[^>]+>", "", t))
-        blocks = re.split(r"\n\s*([МЖ]\d\d[A-ZА-Я]?)\s*\n", t)
+        blocks = re.split(r"\n\s*([МЖ]\d\d[A-ZА-Я]?)(?:,[^\n]*)?[ \t\r]*\n", t)  # "Ж12" or "Ж12, 11 КП, 0.900 м"
         out = []
         for i in range(1, len(blocks) - 1, 2):
             gname, body = blocks[i], blocks[i + 1]
             head = next((l for l in body.split("\n") if "Фамилия" in l and "Результат" in l), None)
             if not head:
                 continue
-            c_team, c_year, c_res, c_place = head.index("Команда"), head.index("Г.р."), head.index("Результат"), head.index("Место")
             lines = []
+            if "Коллектив" in head:
+                # older template (Спартакиада): "№ Фамилия, имя  Коллектив  Квал Номер ГР Результат Место ..."
+                # its columns are not aligned with the header, so read the tail of each row by pattern
+                c_team = head.index("Коллектив")
+                for l in body.split("\n"):
+                    if not re.match(r"^\s*\d+\s+\S", l):
+                        continue
+                    m = re.search(r"\s((?:19|20)\d\d)\s+(\S+)\s+(\S+)", l[c_team:])
+                    if not m:
+                        continue
+                    placed = m.group(3).isdigit()
+                    lines.append({"name": re.sub(r"^\s*\d+\s+", "", l[:c_team]).strip(), "year": m.group(1),
+                                  "club": re.split(r"\s{2,}", l[c_team:].strip())[0],
+                                  "t": secs(m.group(2)) if placed else None, "placed": placed, "vk": "в/к" in m.group(3)})
+                out.append((gname, lines))
+                continue
+            c_team, c_year, c_res, c_place = head.index("Команда"), head.index("Г.р."), head.index("Результат"), head.index("Место")
             for l in body.split("\n"):
                 if not re.match(r"^\s*\d+\s+\S", l) or len(l) < c_place:
                     continue
