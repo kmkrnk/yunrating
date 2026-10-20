@@ -103,12 +103,11 @@ page = open(os.path.join(HERE, "template.html"), encoding="utf-8").read().replac
 URL = "https://kmkrnk.github.io/yunrating/"
 n_people = sum(len(v) for v in out["groups"].values())
 upd = datetime.datetime.strptime(out["updated"], "%Y-%m-%d %H:%M").strftime("%d.%m")
-og_title = "Юношеский рейтинг 2026 — уже посчитан"
-og_desc = (f"Неофициальный расчёт строго по Положению: {len(out['stages'])} дистанций, включая Майскую многодневку "
-           f"и Первенство РБ в Слуцке. {n_people} спортсменов, Ж12–М18. Обновлено {upd}, дальше — в день публикации протоколов.")
+og_title = "Юношеский рейтинг 2026"
+og_desc = "Неофициальный расчёт по Положению. Обновляется в день выхода протоколов."
 og = (f'<meta name="description" content="{html.escape(og_desc)}">'
       f'<meta property="og:type" content="website"><meta property="og:url" content="{URL}">'
-      f'<meta property="og:site_name" content="Юношеский рейтинг · спортивное ориентирование">'
+      f'<meta property="og:site_name" content="Спортивное ориентирование">'
       f'<meta property="og:title" content="{html.escape(og_title)}"><meta property="og:description" content="{html.escape(og_desc)}">'
       f'<meta property="og:image" content="{URL}preview.jpg"><meta property="og:image:secure_url" content="{URL}preview.jpg">'
       f'<meta property="og:image:type" content="image/jpeg"><meta property="og:image:width" content="1200">'

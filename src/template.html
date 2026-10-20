@@ -35,7 +35,7 @@ h2 { color: #A60F19; font-size: 14px; font-weight: bold; }
   <ul class="facts">
     <li><b><a href="https://orient.by/rating/youth/121874-2026/" target="_blank" rel="noopener">Официальная таблица orient.by</a> на 20.08</b> — без изменений; расчёт строго по <a href="https://orient.by/docs/7094/116059/" target="_blank" rel="noopener">Положению</a></li>
     <li><b>Добавлено:</b> <span id="newTxt"></span> <span class="muted">(на Майской многодневке в зачёт только группы А)</span></li>
-    <li><b>Не состоялись:</b> Витебск, памяти Машерова (05–06.09)</li>
+    <li><b>Не состоялись:</b> Витебск, памяти Машерова (05-06.09)</li>
     <li><b>Ачкі</b> — <span id="nTxt"></span></li>
   </ul>
   <div class="rating">
@@ -58,8 +58,12 @@ const D = __DATA__;
   const N = Math.ceil(12 * st.length / D.planned);
   $('nTxt').innerHTML = `сумма <b>${N}</b> лучших результатов <span class="muted">(по Положению 12 из ${D.planned}; пока сезон идёт — пропорционально: ${st.length} этапов → ${N})</span>`;
   const byComp = [];
-  st.filter((s) => !s.official).forEach((s) => { let c = byComp.find((x) => x.c === s.comp); if (!c) byComp.push(c = { c: s.comp, d: [] }); c.d.push(fmtD(s.date)); });
-  $('newTxt').textContent = byComp.map((x) => `${x.c} (${x.d.join(', ')})`).join(' · ');
+  st.filter((s) => !s.official).forEach((s) => { let c = byComp.find((x) => x.c === s.comp); if (!c) byComp.push(c = { c: s.comp, d: [] }); c.d.push(s.date); });
+  // compact dates: 02-03.05, 11-13.09; different months: 30.09-01.10; one day: 24.10
+  const span = (d) => { const a = d[0], b = d[d.length - 1];
+    if (a === b) return fmtD(a);
+    return a.slice(5, 7) === b.slice(5, 7) ? `${a.slice(8, 10)}-${fmtD(b)}` : `${fmtD(a)}-${fmtD(b)}`; };
+  $('newTxt').textContent = byComp.map((x) => `${x.c} (${span(x.d)})`).join(' · ');
   const groups = Object.keys(D.groups);
   $('links').innerHTML = groups.map((g, i) => `<a href="#list${i}" title="Перейти к ${g}">${g}</a>`).join(' | ');
   const head = `<thead><tr><th>№</th><th>Прозвішча, Імя</th><th>ГН</th>${st.map((s) => `<th title="${esc(s.comp)}, ${esc(s.dist)}">${fmtD(s.date)}</th>`).join('')}<th>Ачкі</th><th>Сярэдняе</th><th>Месца</th></tr></thead>`;
