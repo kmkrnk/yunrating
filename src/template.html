@@ -1,4 +1,4 @@
-<title>Юношеский рейтинг 2026</title>
+<title>НЕОФИЦИАЛЬНЫЙ юношеский рейтинг 2026</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <style>
 /* Single light theme on purpose: the table copies the official orient.by rating table styles (css/style.css, .rating). */
@@ -10,6 +10,10 @@ body { margin: 0; font-family: Arial, Helvetica, sans-serif; font-size: 13px; co
 .note { color: #666; font-size: 12px; margin: 0 0 6px; max-width: 900px; }
 a { text-decoration: underline; }
 a:hover { text-decoration: none; }
+.unoff { border: 3px solid #A60F19; background: #fff3cd; color: #5a0a0f; padding: 12px 14px; margin: 0 0 12px; font-size: 14px; line-height: 1.4; }
+.unoff strong { display: block; font-size: 20px; letter-spacing: .5px; color: #A60F19; margin-bottom: 4px; }
+.unoff a { color: #A60F19; font-weight: bold; }
+.tag { display: inline-block; margin-left: 8px; padding: 1px 6px; background: #A60F19; color: #fff; font-size: 11px; font-weight: bold; vertical-align: 1px; }
 h2 { color: #A60F19; font-size: 14px; font-weight: bold; }
 .scroller { overflow-x: auto; }
 .rating table { border-collapse: collapse; width: 100%; }
@@ -22,6 +26,10 @@ h2 { color: #A60F19; font-size: 14px; font-weight: bold; }
 </style>
 
 <div class="wrap">
+  <div class="unoff" role="note">
+    <strong>⚠ НЕОФИЦИАЛЬНЫЙ РАСЧЁТ</strong>
+    Это не рейтинг Белорусской федерации ориентирования. Таблица посчитана частным образом по опубликованным протоколам, чтобы видеть картину сразу после стартов; возможны ошибки. Официальный рейтинг — только на <a href="https://orient.by/rating/youth/121874-2026/" target="_blank" rel="noopener">orient.by</a>.
+  </div>
   <p class="crumbs">Юношеский рейтинг 2026 · неофициальный расчёт · <span id="upd"></span></p>
   <p class="note">До 17.05 — данные официальной таблицы orient.by без изменений. Добавлены этапы, которых в ней ещё нет: <span id="newTxt"></span>. <span id="nTxt"></span></p>
   <div class="rating">
@@ -58,7 +66,7 @@ const D = __DATA__;
     rows.sort((a, b) => b.t - a.t || (a.po ?? 9999) - (b.po ?? 9999) || a.n.localeCompare(b.n, 'ru'));
     const body = rows.map((r, i) =>
       `<tr><td>${i + 1}</td><td>${esc(r.n)}</td><td>${r.y}</td>${st.map((s) => { const v = r.s[s.id]; return `<td>${v == null ? '' : r.k.has(s.id) ? `<b>${v}</b>` : v}</td>`; }).join('')}<td>${r.t}</td><td>${r.a}</td><td>${i + 1}</td></tr>`).join('');
-    return `<a id="list${gi}"></a><h2>${g}</h2><div class="scroller"><table>${head}<tbody>${body}</tbody></table></div>`;
+    return `<a id="list${gi}"></a><h2>${g} <span class="tag">НЕОФИЦИАЛЬНЫЙ РАСЧЁТ · официальный рейтинг — orient.by</span></h2><div class="scroller"><table>${head}<tbody>${body}</tbody></table></div>`;
   }).join('');
   // same striping as orient.by: $('.rating table tr:odd') counts rows across all tables, headers included
   document.querySelectorAll('.rating table tr').forEach((tr, i) => { if (i % 2 === 1) tr.style.backgroundColor = '#eef'; });
