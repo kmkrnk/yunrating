@@ -19,7 +19,7 @@ YEAR = 2026
 PLANNED = 20  # 22 distances in the 2026 calendar (Положение, п. 7) minus Vitebsk 05-06.09, which did not take place
 
 # (source, id, class, competition, distance, date)
-# Up to 20.08 the official table (orient.by, "Юноши 20.08") is taken as is; only later stages are added on top.
+# The official table (orient.by, "Юноши 20.08") is taken as is; other stages are added on top.
 STAGES = [
     ("base", 1048, "Б", "Брестский подснежник", "Классика", "2026-03-28"),
     ("base", 1049, "Б", "Брестский подснежник", "Спринт", "2026-03-29"),
@@ -28,6 +28,9 @@ STAGES = [
     ("base", 1055, "Б", "Гродненская лесная многодневка", "Спринт", "2026-04-18"),
     ("base", 1056, "Б", "Гродненская лесная многодневка", "Средняя", "2026-04-19"),
     ("base", 1057, "Б", "Гродненская лесная многодневка", "Классика", "2026-04-20"),
+    # not in the official table (protocols were never passed to the federation); groups split into А/В: only А counts
+    ("obelarus", "260502r_mm", "Б", "Майская многодневка", "Средняя", "2026-05-02"),
+    ("obelarus", "260503r_mm", "Б", "Майская многодневка", "Длинная", "2026-05-03"),
     ("base", 1076, "А", "Командный чемпионат БФО", "Длинная", "2026-05-16"),
     ("base", 1077, "А", "Командный чемпионат БФО", "Средняя", "2026-05-17"),
     ("obelarus", "260911r_spart", "А", "Республиканская спартакиада", "Спринт", "2026-09-11"),
@@ -37,6 +40,9 @@ STAGES = [
     ("obelarus", "261011r_homel", "Б", "Золотая осень", "Средняя", "2026-10-11"),
     ("base", 1157, "А", "Первенство РБ, Слуцк", "Средняя", "2026-10-17"),
     ("base", 1159, "А", "Первенство РБ, Слуцк", "Спринт", "2026-10-18"),
+    # upcoming: picked up automatically as soon as the protocol appears on obelarus.net
+    ("auto", "Могил", "Б", "Кубок г. Могилёва", "Средняя", "2026-10-24"),
+    ("auto", "Могил", "Б", "Кубок г. Могилёва", "Спринт", "2026-10-25"),
 ]
 # Stages already in the official table, and disputed stages a viewer can switch on or off
 # The BFO base leaves out non-finishers; the official table gives them 0. Take them from obelarus.
@@ -184,10 +190,45 @@ def load_obelarus(code):
     return cached(code + ".htm", url, 3600, parse)
 
 
+def find_protocol(date, keyword):
+    """Code of the obelarus.net result protocol for that day whose page mentions keyword, or None."""
+    ymd = date[2:4] + date[5:7] + date[8:10]
+    try:
+        index = cached(f"index_{ymd}.htm", f"https://www.obelarus.net/results/{YEAR}/", 600, lambda b: b.decode("utf-8", "replace"))
+    except Exception as e:
+        print("obelarus index not reachable:", e)
+        return None
+    for code in sorted(set(re.findall(rf'href="({ymd}r_[^"/]+)\.htm"', index))):
+        try:
+            raw = cached(code + ".page", f"https://www.obelarus.net/results/{YEAR}/{code}.htm", 600, lambda b: b)
+        except Exception:
+            continue
+        try:
+            text = raw.decode("utf-8")
+        except UnicodeDecodeError:
+            text = raw.decode("cp1251")
+        title = re.search(r"<title>(.*?)</title>", text, re.S)
+        body = text[text.find("resbody"):]
+        head = (title.group(1) if title else "") + " " + html.unescape(re.sub(r"<[^>]+>", " ", body))[:1500]
+        if keyword.lower() in head.lower():
+            return code
+    return None
+
+
 def compute():
     persons = {}
     stages = []
     for src, sid, cls, comp, dist, date in STAGES:
+        if src == "auto":
+            code = find_protocol(date, sid)
+            if not code:
+                continue  # not held yet / protocol not published
+            groups_try = load_obelarus(code)
+            if sum(len(l) for g, l in groups_try if norm_group(g) and norm_group(g)[1] in (12, 14, 16, 18)) < 20:
+                print("protocol", code, "found but not readable yet - skipped")
+                continue
+            src, sid = "obelarus", code
+            print("new stage picked up:", comp, date, code)
         K = 1.1 if cls == "А" else 1.0
         groups = load_base(sid) if src == "base" else load_obelarus(sid)
         if src == "base" and sid in DNF_SOURCE:

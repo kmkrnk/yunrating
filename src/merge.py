@@ -1,5 +1,5 @@
 """Official table (orient.by) for published stages + own calculation for later stages."""
-import datetime, html, json, os, re, sys
+import datetime, html, json, os, re, shutil, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import calc
@@ -95,7 +95,21 @@ site = os.path.join(HERE, "..", "site")
 os.makedirs(site, exist_ok=True)
 open(os.path.join(site, "rating.json"), "w", encoding="utf-8").write(data)
 page = open(os.path.join(HERE, "template.html"), encoding="utf-8").read().replace("__DATA__", data)
+# link preview for Telegram and other messengers (Open Graph)
+URL = "https://kmkrnk.github.io/yunrating/"
+n_people = sum(len(v) for v in out["groups"].values())
+upd = datetime.datetime.strptime(out["updated"], "%Y-%m-%d %H:%M").strftime("%d.%m")
+og_title = "Юношеский рейтинг 2026 — уже посчитан"
+og_desc = (f"Неофициальный расчёт строго по Положению: {len(out['stages'])} дистанций, включая Майскую многодневку "
+           f"и Первенство РБ в Слуцке. {n_people} спортсменов, Ж12–М18. Обновлено {upd}, дальше — в день публикации протоколов.")
+og = (f'<meta name="description" content="{html.escape(og_desc)}">'
+      f'<meta property="og:type" content="website"><meta property="og:url" content="{URL}">'
+      f'<meta property="og:site_name" content="Юношеский рейтинг · спортивное ориентирование">'
+      f'<meta property="og:title" content="{html.escape(og_title)}"><meta property="og:description" content="{html.escape(og_desc)}">'
+      f'<meta property="og:image" content="{URL}og.jpg?v=1"><meta property="og:image:width" content="1200">'
+      f'<meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image">')
+shutil.copy(os.path.join(HERE, "og.jpg"), os.path.join(site, "og.jpg"))
 open(os.path.join(site, "index.html"), "w", encoding="utf-8").write(
     '<!doctype html><html lang="ru"><head><meta charset="utf-8">'
-    '<meta name="viewport" content="width=device-width,initial-scale=1">' + page.replace('<meta name="claude:viewport-fit-sides" content="cover">', '').replace('<div class="wrap">', '</head><body><div class="wrap">', 1) + '</body></html>')
+    '<meta name="viewport" content="width=device-width,initial-scale=1">' + og + page.replace('<meta name="claude:viewport-fit-sides" content="cover">', '').replace('<div class="wrap">', '</head><body><div class="wrap">', 1) + '</body></html>')
 print("official rows", sum(len(v) for v in official.values()), "matched new results", matched, "new rows", added)
