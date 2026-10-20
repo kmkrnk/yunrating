@@ -27,6 +27,8 @@ STAGES = [
     ("base", 1055, "Б", "Гродненская лесная многодневка", "Спринт", "2026-04-18"),
     ("base", 1056, "Б", "Гродненская лесная многодневка", "Средняя", "2026-04-19"),
     ("base", 1057, "Б", "Гродненская лесная многодневка", "Классика", "2026-04-20"),
+    ("obelarus", "260502r_mm", "Б", "Майская многодневка", "Средняя", "2026-05-02"),
+    ("obelarus", "260503r_mm", "Б", "Майская многодневка", "Длинная", "2026-05-03"),
     ("base", 1076, "А", "Командный чемпионат БФО", "Длинная", "2026-05-16"),
     ("base", 1077, "А", "Командный чемпионат БФО", "Средняя", "2026-05-17"),
     ("obelarus", "260911r_spart", "А", "Республиканская спартакиада", "Спринт", "2026-09-11"),
@@ -165,6 +167,9 @@ def load_obelarus(code):
                 if not re.match(r"^\s*\d+\s+\S", l) or len(l) < c_place:
                     continue
                 name = re.sub(r"^\s*\d+\s+", "", l[:c_team]).strip()
+                cm = re.search(r"\s+([A-Z]{3})$", name)  # foreign athletes: "Степанова Анна   RUS"
+                country = cm.group(1) if cm else ""
+                name = name[:cm.start()] if cm else name
                 year = l[c_year:c_year + 4].strip()
                 res = l[c_res - 2:c_place].strip()
                 place = l[c_place:c_place + 6].strip()
@@ -172,7 +177,8 @@ def load_obelarus(code):
                     continue
                 placed = place.isdigit()
                 lines.append({"name": name, "year": year, "club": l[c_team:c_year].strip(),
-                              "t": secs(res) if placed else None, "placed": placed, "vk": "в/к" in place})
+                              "t": secs(res) if placed else None, "placed": placed, "vk": "в/к" in place,
+                              "foreign": country not in ("", "BLR")})
             out.append((gname, lines))
         return out
 
@@ -208,7 +214,8 @@ def compute():
                 continue
             tw = min(l["t"] for l in fin)
             for l in lines:
-                if not l["year"] or not str(l["year"]).isdigit() or l["vk"]:
+                # foreigners set the winner's time like everyone else, but the rating is for Belarus athletes
+                if not l["year"] or not str(l["year"]).isdigit() or l["vk"] or l.get("foreign"):
                     continue
                 rg = rating_age(l["year"])
                 if rg is None or not eligible(rg, g, top):
