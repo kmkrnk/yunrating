@@ -110,13 +110,13 @@ og = (f'<meta name="description" content="{html.escape(og_desc)}">'
       f'<meta property="og:type" content="website"><meta property="og:url" content="{URL}">'
       f'<meta property="og:site_name" content="Юношеский рейтинг · спортивное ориентирование">'
       f'<meta property="og:title" content="{html.escape(og_title)}"><meta property="og:description" content="{html.escape(og_desc)}">'
-      f'<meta property="og:image" content="{URL}og.jpg"><meta property="og:image:secure_url" content="{URL}og.jpg">'
+      f'<meta property="og:image" content="{URL}preview.jpg"><meta property="og:image:secure_url" content="{URL}preview.jpg">'
       f'<meta property="og:image:type" content="image/jpeg"><meta property="og:image:width" content="1200">'
-      f'<meta property="og:image:height" content="630"><meta property="og:image:alt" content="{html.escape(og_title)}">'
+      f'<meta property="og:image:height" content="670"><meta property="og:image:alt" content="{html.escape(og_title)}">'
       f'<meta property="og:locale" content="ru_RU"><link rel="canonical" href="{URL}">'
       f'<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="{html.escape(og_title)}">'
-      f'<meta name="twitter:description" content="{html.escape(og_desc)}"><meta name="twitter:image" content="{URL}og.jpg">')
-shutil.copy(os.path.join(HERE, "og.jpg"), os.path.join(site, "og.jpg"))
+      f'<meta name="twitter:description" content="{html.escape(og_desc)}"><meta name="twitter:image" content="{URL}preview.jpg">')
+shutil.copy(os.path.join(HERE, "preview.jpg"), os.path.join(site, "preview.jpg"))
 open(os.path.join(site, "index.html"), "w", encoding="utf-8").write(
     '<!doctype html><html lang="ru"><head><meta charset="utf-8">'
     '<meta name="viewport" content="width=device-width,initial-scale=1">' + og + page.replace('<meta name="claude:viewport-fit-sides" content="cover">', '').replace('<div class="wrap">', '</head><body><div class="wrap">', 1) + '</body></html>')

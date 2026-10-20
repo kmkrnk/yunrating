@@ -9,6 +9,7 @@ Rules (Положение о республиканском юношеском �
   or one older (M/W18 also in 20 and 21; in 21 only 21E when 21 is split into levels);
   best N distances count, N = ceil(12 * held / planned).
 """
+from fractions import Fraction
 import html, json, math, os, re, time, unicodedata, urllib.request
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -191,6 +192,13 @@ def load_obelarus(code):
     return cached(code + ".htm", url, 3600, parse)
 
 
+def points(cls, tw, t):
+    """Положение п.4: К x 1000 x (2 x Тпоб / Туч - 1), rounded to a whole number (half up), never below 0. Exact arithmetic."""
+    k = Fraction(11, 10) if cls == "А" else Fraction(1)
+    v = k * 1000 * (2 * Fraction(tw, t) - 1)
+    return max(0, math.floor(v + Fraction(1, 2)))
+
+
 def find_protocol(date, keyword):
     """Code of the obelarus.net result protocol for that day whose page mentions keyword, or None."""
     ymd = date[2:4] + date[5:7] + date[8:10]
@@ -264,7 +272,7 @@ def compute():
                 rg = rating_age(l["year"])
                 if rg is None or not eligible(rg, g, top):
                     continue
-                pts = max(0, round(K * 1000 * (2 * tw / l["t"] - 1))) if l["t"] else 0
+                pts = points(cls, tw, l["t"]) if l["t"] else 0
                 key = (norm_name(l["name"]), int(l["year"]), g[0])
                 if key not in got or pts > got[key]:
                     got[key] = pts
