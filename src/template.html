@@ -1,0 +1,66 @@
+<title>Юношеский рейтинг 2026</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Single light theme on purpose: the table copies the official orient.by rating table styles (css/style.css, .rating). */
+:root { color-scheme: light; }
+body { margin: 0; font-family: Arial, Helvetica, sans-serif; font-size: 13px; color: #333; background-color: #fff;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1200px; margin: 0 auto; padding-block: 20px 32px; }
+.crumbs { color: #A60F19; font-weight: bold; font-size: 14px; margin: 0 0 4px; }
+.note { color: #666; font-size: 12px; margin: 0 0 6px; max-width: 900px; }
+a { text-decoration: underline; }
+a:hover { text-decoration: none; }
+h2 { color: #A60F19; font-size: 14px; font-weight: bold; }
+.scroller { overflow-x: auto; }
+.rating table { border-collapse: collapse; width: 100%; }
+.rating table th { padding: 2px; border: 1px solid #ccc; }
+.rating table td { text-align: center; padding: 2px; border: 1px solid #ccc; }
+.rating table td:nth-child(2) { text-align: left; padding: 2px 5px; border-right: 2px solid #000; }
+.rating table tr td:nth-child(2) { white-space: nowrap; }
+.rating table tr:hover td { background-color: #ddd; }
+.rating table td:nth-last-child(3) { font-weight: bold; border-left: 2px solid #000; }
+</style>
+
+<div class="wrap">
+  <p class="crumbs">Юношеский рейтинг 2026 · неофициальный расчёт · <span id="upd"></span></p>
+  <p class="note">До 17.05 — данные официальной таблицы orient.by без изменений. Добавлены этапы, которых в ней ещё нет: <span id="newTxt"></span>. <span id="nTxt"></span></p>
+  <div class="rating">
+    <hr>
+    <span id="links"></span>
+    <hr>
+    <div id="tables"></div>
+  </div>
+</div>
+
+<script>
+const D = __DATA__;
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const fmtD = (d) => d.slice(8, 10) + '.' + d.slice(5, 7);
+  const [ud, ut] = D.updated.split(' ');
+  $('upd').textContent = 'на ' + ud.split('-').reverse().join('.') + ' ' + ut;
+  const st = D.stages;
+  const N = Math.ceil(12 * st.length / D.planned);
+  $('nTxt').textContent = `Ачкі — сумма ${N} лучших результатов. По Положению в зачёт идут 12 лучших из ${D.planned} дистанций, а пока сезон не закончен — пропорционально проведённым, с округлением вверх: ${st.length} × 12 / ${D.planned} → ${N}. Официальная таблица считает так же: 9 × 12 / 22 → 5.`;
+  $('newTxt').textContent = st.filter((s) => !s.official).map((s) => `${fmtD(s.date)} (${s.comp})`).join(', ');
+  const groups = Object.keys(D.groups);
+  $('links').innerHTML = groups.map((g, i) => `<a href="#list${i}" title="Перейти к ${g}">${g}</a>`).join(' | ');
+  const head = `<thead><tr><th>№</th><th>Прозвішча, Імя</th><th>ГН</th>${st.map((s) => `<th title="${esc(s.comp)}, ${esc(s.dist)}">${fmtD(s.date)}</th>`).join('')}<th>Ачкі</th><th>Сярэдняе</th><th>Месца</th></tr></thead>`;
+  $('tables').innerHTML = groups.map((g, gi) => {
+    const rows = (D.groups[g] || []).map((r) => {
+      const best = Object.entries(r.s).sort((a, b) => b[1] - a[1]).slice(0, N);
+      const t = best.reduce((x, [, v]) => x + v, 0);
+      const nz = best.filter(([, v]) => v > 0).length;           // official average ignores zero results
+      return { ...r, t, a: nz ? Math.round(t / nz) : 0, k: new Set(best.map(([k]) => k)) };
+    });
+    // equal totals keep the official order, as in the official table
+    rows.sort((a, b) => b.t - a.t || (a.po ?? 9999) - (b.po ?? 9999) || a.n.localeCompare(b.n, 'ru'));
+    const body = rows.map((r, i) =>
+      `<tr><td>${i + 1}</td><td>${esc(r.n)}</td><td>${r.y}</td>${st.map((s) => { const v = r.s[s.id]; return `<td>${v == null ? '' : r.k.has(s.id) ? `<b>${v}</b>` : v}</td>`; }).join('')}<td>${r.t}</td><td>${r.a}</td><td>${i + 1}</td></tr>`).join('');
+    return `<a id="list${gi}"></a><h2>${g}</h2><div class="scroller"><table>${head}<tbody>${body}</tbody></table></div>`;
+  }).join('');
+  // same striping as orient.by: $('.rating table tr:odd') counts rows across all tables, headers included
+  document.querySelectorAll('.rating table tr').forEach((tr, i) => { if (i % 2 === 1) tr.style.backgroundColor = '#eef'; });
+})();
+</script>
