@@ -55,6 +55,16 @@ index = {}
 for g, ps in rows.items():
     for r in ps:
         index.setdefault(norm(r["n"]), []).append((g, r))
+def lev1(a, b):
+    """True if a and b differ by at most one inserted, deleted or replaced letter."""
+    if abs(len(a) - len(b)) > 1:
+        return False
+    i = 0
+    while i < min(len(a), len(b)) and a[i] == b[i]:
+        i += 1
+    return a[i + 1:] == b[i + 1:] or a[i + 1:] == b[i:] or a[i:] == b[i + 1:]
+
+
 matched = added = 0
 for g, ps in R["tables"].items():
     for p in ps:
@@ -68,6 +78,10 @@ for g, ps in R["tables"].items():
             fam, first = norm(p["name"]).split(" ", 1) if " " in norm(p["name"]) else (norm(p["name"]), "")
             hit = next((r for r in rows.get(g, []) if r["po"] is not None and r["y"] == p["year"]
                         and norm(r["n"]).split(" ")[0] == fam and norm(r["n"]).split(" ", 1)[-1][:4] == first[:4]), None)
+        if not hit:  # surname differs by one letter (Кузмич / Кузьмич, Ключинович / Ключенович), same first name and year
+            fam, first = (norm(p["name"]).split(" ", 1) + [""])[:2]
+            hit = next((r for r in rows.get(g, []) if r["po"] is not None and r["y"] == p["year"]
+                        and (norm(r["n"]).split(" ", 1) + [""])[1] == first and lev1(norm(r["n"]).split(" ")[0], fam)), None)
         if hit:
             hit["s"].update(newpts); matched += 1
         else:
