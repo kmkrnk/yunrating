@@ -43,6 +43,14 @@ new_ids = {s["id"] for s in stages if not s["official"]}
 
 rows = {g: [{"n": p["n"], "y": p["y"], "po": p["place"], "s": {date2id[d]: v for d, v in p["pts"].items()}} for p in ps]
         for g, ps in official.items()}
+# One person entered twice in the official table: (group, name kept, year, other spelling). Rows are joined
+# only if they never share a stage.
+SAME_PERSON = [("Ж14", "Рябикова Варвара", 2012, "Рябикова Варя")]
+for g, keep, y, other in SAME_PERSON:
+    a = next((r for r in rows.get(g, []) if r["n"] == keep and r["y"] == y), None)
+    b = next((r for r in rows.get(g, []) if r["n"] == other and r["y"] == y), None)
+    if a and b and not set(a["s"]) & set(b["s"]):
+        a["s"].update(b["s"]); a["po"] = min(a["po"], b["po"]); rows[g].remove(b)
 index = {}
 for g, ps in rows.items():
     for r in ps:
