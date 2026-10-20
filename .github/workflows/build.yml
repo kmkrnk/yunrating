@@ -1,7 +1,5 @@
 name: Пересчёт рейтинга
 on:
-  schedule:
-    - cron: "7 * * * *"   # каждый час: новые протоколы попадают на сайт в течение часа
   workflow_dispatch: {}
   push:
     branches: [main]
