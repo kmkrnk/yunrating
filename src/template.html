@@ -9,6 +9,11 @@ body { margin: 0; font-family: Arial, Helvetica, sans-serif; font-size: 13px; co
 .crumbs { color: #A60F19; font-weight: bold; font-size: 14px; margin: 0 0 4px; }
 .facts { margin: 0 0 8px; padding-left: 18px; color: #444; font-size: 13px; line-height: 1.6; }
 .facts .muted { color: #888; }
+.facts > li { margin-bottom: 2px; }
+@media (max-width: 600px) { .tag .wide { display: none; } }
+.facts .sub { list-style: none; margin: 2px 0 4px; padding-left: 0; }
+.facts .sub li { display: flex; gap: 8px; padding-left: 2px; }
+.facts .sub .d { flex: 0 0 auto; min-width: 64px; font-variant-numeric: tabular-nums; color: #A60F19; font-weight: bold; }
 a { text-decoration: underline; }
 a:hover { text-decoration: none; }
 .unoff { border: 3px solid #A60F19; background: #fff3cd; color: #5a0a0f; padding: 12px 14px; margin: 0 0 12px; font-size: 14px; line-height: 1.4; }
@@ -33,10 +38,15 @@ h2 { color: #A60F19; font-size: 14px; font-weight: bold; }
   </div>
   <p class="crumbs">Юношеский рейтинг 2026 · неофициальный расчёт · <span id="upd"></span></p>
   <ul class="facts">
-    <li><b><a href="https://orient.by/rating/youth/121874-2026/" target="_blank" rel="noopener">Официальная таблица orient.by</a> на 20.08</b> — без изменений; расчёт строго по <a href="https://orient.by/docs/7094/116059/" target="_blank" rel="noopener">Положению</a></li>
-    <li><b>Добавлено:</b> <span id="newTxt"></span> <span class="muted">(на Майской многодневке в зачёт только группы А)</span></li>
-    <li><b>Не состоялись:</b> Витебск, памяти Машерова (05-06.09)</li>
+    <li><b>Основа:</b> <a href="https://orient.by/rating/youth/121874-2026/" target="_blank" rel="noopener">официальная таблица orient.by</a> на 20.08, без изменений</li>
+    <li><b>Добавлено:</b>
+      <ul class="sub" id="newList"></ul>
+    </li>
+    <li><b>Не состоялись:</b>
+      <ul class="sub"><li><span class="d">05-06.09</span>Витебск, памяти Машерова</li></ul>
+    </li>
     <li><b>Ачкі</b> — <span id="nTxt"></span></li>
+    <li><b>Правила:</b> строго по <a href="https://orient.by/docs/7094/116059/" target="_blank" rel="noopener">Положению о юношеском рейтинге 2026</a></li>
   </ul>
   <div class="rating">
     <hr>
@@ -63,7 +73,8 @@ const D = __DATA__;
   const span = (d) => { const a = d[0], b = d[d.length - 1];
     if (a === b) return fmtD(a);
     return a.slice(5, 7) === b.slice(5, 7) ? `${a.slice(8, 10)}-${fmtD(b)}` : `${fmtD(a)}-${fmtD(b)}`; };
-  $('newTxt').textContent = byComp.map((x) => `${x.c} (${span(x.d)})`).join(' · ');
+  const NOTE = { 'Майская многодневка': 'в зачёт только группы А' };
+  $('newList').innerHTML = byComp.map((x) => `<li><span class="d">${span(x.d)}</span><span>${esc(x.c)}${NOTE[x.c] ? ` <span class="muted">— ${NOTE[x.c]}</span>` : ''}</span></li>`).join('');
   const groups = Object.keys(D.groups);
   $('links').innerHTML = groups.map((g, i) => `<a href="#list${i}" title="Перейти к ${g}">${g}</a>`).join(' | ');
   const head = `<thead><tr><th>№</th><th>Прозвішча, Імя</th><th>ГН</th>${st.map((s) => `<th title="${esc(s.comp)}, ${esc(s.dist)}">${fmtD(s.date)}</th>`).join('')}<th>Ачкі</th><th>Сярэдняе</th><th>Месца</th></tr></thead>`;
@@ -78,7 +89,7 @@ const D = __DATA__;
     rows.sort((a, b) => b.t - a.t || (a.po ?? 9999) - (b.po ?? 9999) || a.n.localeCompare(b.n, 'ru'));
     const body = rows.map((r, i) =>
       `<tr><td>${i + 1}</td><td>${esc(r.n)}</td><td>${r.y}</td>${st.map((s) => { const v = r.s[s.id]; return `<td>${v == null ? '' : r.k.has(s.id) ? `<b>${v}</b>` : v}</td>`; }).join('')}<td>${r.t}</td><td>${r.a}</td><td>${i + 1}</td></tr>`).join('');
-    return `<a id="list${gi}"></a><h2>${g} <span class="tag">НЕОФИЦИАЛЬНЫЙ РАСЧЁТ · официальный рейтинг — orient.by</span></h2><div class="scroller"><table>${head}<tbody>${body}</tbody></table></div>`;
+    return `<a id="list${gi}"></a><h2>${g} <span class="tag">НЕОФИЦИАЛЬНЫЙ РАСЧЁТ<span class="wide"> · официальный рейтинг — orient.by</span></span></h2><div class="scroller"><table>${head}<tbody>${body}</tbody></table></div>`;
   }).join('');
   // same striping as orient.by: $('.rating table tr:odd') counts rows across all tables, headers included
   document.querySelectorAll('.rating table tr').forEach((tr, i) => { if (i % 2 === 1) tr.style.backgroundColor = '#eef'; });
