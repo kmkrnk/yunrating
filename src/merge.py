@@ -31,6 +31,10 @@ RAT = os.path.join(HERE, "cache", "official.html")
 os.makedirs(os.path.dirname(RAT), exist_ok=True)
 open(RAT, "wb").write(calc.fetch("https://orient.by/rating/youth/121874-2026/"))
 official, odates = parse_official(RAT)
+# birth year as the federation has it decides the age group (protocols sometimes give another year)
+for ps in official.values():
+    for p in ps:
+        calc.KNOWN_YEARS.setdefault(calc.norm_name(p["n"]), p["y"])
 R = calc.compute()
 stages = R["stages"]
 date2id = {}
@@ -106,8 +110,12 @@ og = (f'<meta name="description" content="{html.escape(og_desc)}">'
       f'<meta property="og:type" content="website"><meta property="og:url" content="{URL}">'
       f'<meta property="og:site_name" content="Юношеский рейтинг · спортивное ориентирование">'
       f'<meta property="og:title" content="{html.escape(og_title)}"><meta property="og:description" content="{html.escape(og_desc)}">'
-      f'<meta property="og:image" content="{URL}og.jpg?v=1"><meta property="og:image:width" content="1200">'
-      f'<meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image">')
+      f'<meta property="og:image" content="{URL}og.jpg"><meta property="og:image:secure_url" content="{URL}og.jpg">'
+      f'<meta property="og:image:type" content="image/jpeg"><meta property="og:image:width" content="1200">'
+      f'<meta property="og:image:height" content="630"><meta property="og:image:alt" content="{html.escape(og_title)}">'
+      f'<meta property="og:locale" content="ru_RU"><link rel="canonical" href="{URL}">'
+      f'<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="{html.escape(og_title)}">'
+      f'<meta name="twitter:description" content="{html.escape(og_desc)}"><meta name="twitter:image" content="{URL}og.jpg">')
 shutil.copy(os.path.join(HERE, "og.jpg"), os.path.join(site, "og.jpg"))
 open(os.path.join(site, "index.html"), "w", encoding="utf-8").write(
     '<!doctype html><html lang="ru"><head><meta charset="utf-8">'

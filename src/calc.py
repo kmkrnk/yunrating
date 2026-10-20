@@ -48,6 +48,7 @@ STAGES = [
 # The BFO base leaves out non-finishers; the official table gives them 0. Take them from obelarus.
 DNF_SOURCE = {1157: "261017r_slutsk", 1159: "261018r_slutsk"}
 OFFICIAL = {"1048", "1049", "1052", "1053", "1055", "1056", "1057", "1076", "1077"}
+KNOWN_YEARS = {}  # name -> birth year from the official table (filled by merge.py)
 OPTIONAL = {}  # stages follow the official list on orient.by (competitions/2026/?kubok#unoshi)
 
 
@@ -257,6 +258,9 @@ def compute():
                 # foreigners set the winner's time like everyone else, but the rating is for Belarus athletes
                 if not l["year"] or not str(l["year"]).isdigit() or l["vk"] or l.get("foreign"):
                     continue
+                ky = KNOWN_YEARS.get(norm_name(l["name"]))
+                if ky and abs(ky - int(l["year"])) <= 1:
+                    l["year"] = ky
                 rg = rating_age(l["year"])
                 if rg is None or not eligible(rg, g, top):
                     continue
