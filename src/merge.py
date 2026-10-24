@@ -93,7 +93,7 @@ for g, ps in R["tables"].items():
                         and norm(r["n"]).split(" ")[0] == fam and norm(r["n"]).split(" ", 1)[-1][:4] == first[:4]), None)
         if not hit:  # surname differs by one letter (Кузмич / Кузьмич, Ключинович / Ключенович), same first name and year
             fam, first = (norm(p["name"]).split(" ", 1) + [""])[:2]
-            hit = next((r for r in rows.get(g, []) if r["po"] is not None and r["y"] == p["year"]
+            hit = next((r for r in rows.get(g, []) if r["y"] == p["year"] and set(r["s"]).isdisjoint(newpts)
                         and (norm(r["n"]).split(" ", 1) + [""])[1] == first and lev1(norm(r["n"]).split(" ")[0], fam)), None)
         if hit:
             hit["s"].update(newpts); matched += 1

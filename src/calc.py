@@ -41,9 +41,7 @@ STAGES = [
     ("obelarus", "261011r_homel", "Б", "Золотая осень", "Средняя", "2026-10-11"),
     ("base", 1157, "А", "Первенство РБ, Слуцк", "Средняя", "2026-10-17"),
     ("base", 1159, "А", "Первенство РБ, Слуцк", "Спринт", "2026-10-18"),
-    # upcoming: picked up automatically as soon as the protocol appears on obelarus.net
-    ("auto", "Могил", "Б", "Кубок г. Могилёва", "Средняя", "2026-10-24"),
-    ("auto", "Могил", "Б", "Кубок г. Могилёва", "Спринт", "2026-10-25"),
+    ("obelarus", "261024r_kvm26", "Б", "Кубок г. Могилёва", "Средняя", "2026-10-24"),
 ]
 # Stages already in the official table, and disputed stages a viewer can switch on or off
 # The BFO base leaves out non-finishers; the official table gives them 0. Take them from obelarus.
@@ -148,7 +146,8 @@ def load_obelarus(code):
         except UnicodeDecodeError:
             t = raw.decode("cp1251")
         t = html.unescape(re.sub(r"<[^>]+>", "", t))
-        blocks = re.split(r"\n\s*([МЖ]\d\d[A-ZА-Я]?)(?:,[^\n]*)?[ \t\r]*\n", t)  # "Ж12" or "Ж12, 11 КП, 0.900 м"
+        # group headers: "Ж12" or "Ж12, 11 КП, 0.900 м"; non-foot groups (МТВОЖ16, Open, OPEN3) get their own block and are skipped later
+        blocks = re.split(r"\n\s*([МЖ]\d\d[A-ZА-Я]?|МТВО\S*?|Open|OPEN\d*)(?:,[^\n]*)?[ \t\r]*\n", t)
         out = []
         for i in range(1, len(blocks) - 1, 2):
             gname, body = blocks[i], blocks[i + 1]
@@ -163,13 +162,17 @@ def load_obelarus(code):
                 for l in body.split("\n"):
                     if not re.match(r"^\s*\d+\s+\S", l):
                         continue
-                    m = re.search(r"\s((?:19|20)\d\d)\s+(\S+)\s+(\S+)", l[c_team:])
+                    # "... Номер ГР Результат [Отставание] Место ...": bib, birth year, result, optional "+gap", place
+                    m = re.search(r"\s(\d+)\s+(?:((?:19|20)\d\d)\s+)?(\d+:\d\d:\d\d|п\.?\s?п\S*|сн\S*|сош\S*|н\.?\s?ст\S*|н/с\S*|-)(?:\s+\+\S+)?(?:\s+=?\s*(\S+))?", l[c_team:])  # "= 13" is a shared place
                     if not m:
                         continue
-                    placed = m.group(3).isdigit()
-                    lines.append({"name": re.sub(r"^\s*\d+\s+", "", l[:c_team]).strip(), "year": m.group(1),
+                    res, place = m.group(3), m.group(4) or ""
+                    if re.match(r"н\.?\s?ст|н/с", res.lower()):
+                        continue  # did not start: not a participant, no points at all
+                    placed = place.isdigit()
+                    lines.append({"name": " ".join(re.sub(r"^\s*\d+\s+", "", l[:c_team]).split()), "year": m.group(2) or "",
                                   "club": re.split(r"\s{2,}", l[c_team:].strip())[0],
-                                  "t": secs(m.group(2)) if placed else None, "placed": placed, "vk": "в/к" in m.group(3)})
+                                  "t": secs(res) if placed else None, "placed": placed, "vk": "в/к" in place or "в/к" in res})
                 out.append((gname, lines))
                 continue
             c_team, c_year, c_res, c_place = head.index("Команда"), head.index("Г.р."), head.index("Результат"), head.index("Место")
