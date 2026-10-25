@@ -64,6 +64,12 @@ for g, keep, y, other in SAME_PERSON:
     b = next((r for r in rows.get(g, []) if r["n"] == other and r["y"] == y), None)
     if a and b and not set(a["s"]) & set(b["s"]):
         a["s"].update(b["s"]); a["po"] = min(a["po"], b["po"]); rows[g].remove(b)
+# Name written wrongly in the official table: (group, name there, year) -> correct name (new results come under it)
+RENAME = {("М14", "Лапушка Глеб", 2013): "Лопушко Глеб"}
+for (g, wrong, y), right in RENAME.items():
+    for r in rows.get(g, []):
+        if r["n"] == wrong and r["y"] == y:
+            r["n"] = right
 index = {}
 for g, ps in rows.items():
     for r in ps:
