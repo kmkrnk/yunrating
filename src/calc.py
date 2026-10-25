@@ -42,6 +42,8 @@ STAGES = [
     ("base", 1157, "А", "Первенство РБ, Слуцк", "Средняя", "2026-10-17"),
     ("base", 1159, "А", "Первенство РБ, Слуцк", "Спринт", "2026-10-18"),
     ("obelarus", "261024r_kvm26", "Б", "Кубок г. Могилёва", "Средняя", "2026-10-24"),
+    # live results (live.obelarus.net) until the protocol is published
+    ("json", "261025_kvm26_live", "Б", "Кубок г. Могилёва", "Спринт", "2026-10-25"),
 ]
 # Stages already in the official table, and disputed stages a viewer can switch on or off
 # The BFO base leaves out non-finishers; the official table gives them 0. Take them from obelarus.
@@ -230,6 +232,12 @@ def find_protocol(date, keyword):
     return None
 
 
+def load_json(name):
+    """Results saved in the repo (e.g. taken from live.obelarus.net before the protocol is out): [group, [lines]]."""
+    data = json.load(open(os.path.join(HERE, "data", name + ".json"), encoding="utf-8"))
+    return [(g, lines) for g, lines in data["groups"]]
+
+
 def compute():
     persons = {}
     stages = []
@@ -245,7 +253,7 @@ def compute():
             src, sid = "obelarus", code
             print("new stage picked up:", comp, date, code)
         K = 1.1 if cls == "А" else 1.0
-        groups = load_base(sid) if src == "base" else load_obelarus(sid)
+        groups = load_base(sid) if src == "base" else load_json(sid) if src == "json" else load_obelarus(sid)
         if src == "base" and sid in DNF_SOURCE:
             extra = {norm_group(g): [l for l in ls if not l["placed"] and not l["vk"]] for g, ls in load_obelarus(DNF_SOURCE[sid])}
             for gname, lines in groups:
