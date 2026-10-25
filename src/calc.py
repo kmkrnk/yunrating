@@ -42,8 +42,7 @@ STAGES = [
     ("base", 1157, "А", "Первенство РБ, Слуцк", "Средняя", "2026-10-17"),
     ("base", 1159, "А", "Первенство РБ, Слуцк", "Спринт", "2026-10-18"),
     ("obelarus", "261024r_kvm26", "Б", "Кубок г. Могилёва", "Средняя", "2026-10-24"),
-    # live results (live.obelarus.net) until the protocol is published
-    ("json", "261025_kvm26_live", "Б", "Кубок г. Могилёва", "Спринт", "2026-10-25"),
+    ("obelarus", "261025r_kvm26", "Б", "Кубок г. Могилёва", "Спринт", "2026-10-25"),
 ]
 # Stages already in the official table, and disputed stages a viewer can switch on or off
 # The BFO base leaves out non-finishers; the official table gives them 0. Take them from obelarus.
